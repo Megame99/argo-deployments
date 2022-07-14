@@ -1,0 +1,46 @@
+repositories:
+  - name: hashicorp
+    url: https://helm.releases.hashicorp.com
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: k8s-at-home
+    url: https://k8s-at-home.com/charts/
+  - name: stable
+    url: https://charts.helm.sh/stable
+  - name: falcosecurity
+    url: https://falcosecurity.github.io/charts
+  - name: kured
+    url: https://weaveworks.github.io/kured
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: kubecost
+    url: https://kubecost.github.io/cost-analyzer/
+  - name: argocd
+    url: https://argoproj.github.io/argo-helm
+  - name: redis-ha
+    url: https://dandydeveloper.github.io/charts/
+
+helmDefaults:
+  verify: false
+  wait: false
+
+environments:
+  meganrd:
+
+releases:
+
+# ArgoCD Deployment
+
+  - name: argocd-{{ .Environment.Name }}
+    chart: ../helm/charts/argocd
+    namespace: agrocd-{{ .Environment.Name }}
+    version: 4.9.8
+    values:
+      - overrides/argocd/argocd.yaml.gotmpl
+    labels:
+        app: argocd
+    wait: false
+    installed: true
+    force: false
