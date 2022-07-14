@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app: raw
+    argocd.argoproj.io/instance: argocd
+    chart: raw-0.2.5
+    heritage: Helm
+    release: argocd-apps
+  name: argocd
+  namespace: agrocd-meganrd
+spec:
+  destination:
+    namespace: argocd-helmfile
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: helmfile
+    plugin:
+      env:
+      - name: HELMFILE_GLOBAL_OPTIONS
+        value: --file helmfile/test.yaml
+      - name: HELMFILE_TEMPLATE_OPTIONS
+        value: --include-crds
+      - name: HELM_TEMPLATE_OPTIONS
+        value: --skip-tests
+      name: helmfile
+    repoURL: https://github.com/Megame99/argo-deployments.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - ApplyOutOfSyncOnly=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-frontend
+  namespace: agrocd-meganrd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Megame99/argo-deployments.git'
+    path: helm/charts/argocd
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-helm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
