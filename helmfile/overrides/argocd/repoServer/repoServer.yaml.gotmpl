@@ -1,0 +1,252 @@
+## Repo Server
+repoServer:
+  # -- Repo server name
+  name: repo-server
+
+  # -- The number of repo server pods to run
+  replicas: 1
+
+  autoscaling:
+    # -- Enable Horizontal Pod Autoscaler ([HPA]) for the repo server
+    enabled: false
+    # -- Minimum number of replicas for the repo server [HPA]
+    minReplicas: 1
+    # -- Maximum number of replicas for the repo server [HPA]
+    maxReplicas: 5
+    # -- Average CPU utilization percentage for the repo server [HPA]
+    targetCPUUtilizationPercentage: 50
+    # -- Average memory utilization percentage for the repo server [HPA]
+    targetMemoryUtilizationPercentage: 50
+
+  image:
+    # -- Repository to use for the repo server
+    # @default -- `""` (defaults to global.image.repository)
+    repository: "" # defaults to global.image.repository
+    # -- Tag to use for the repo server
+    # @default -- `""` (defaults to global.image.tag)
+    tag: "" # defaults to global.image.tag
+    # -- Image pull policy for the repo server
+    # @default -- `""` (defaults to global.image.imagePullPolicy)
+    imagePullPolicy: "" # IfNotPresent
+  config:
+    configManagementPlugins: |
+      - name: helmfile
+        init:                          # Optional command to initialize application source directory
+          command: ["argo-cd-helmfile.sh"]
+          args: ["init"]
+        generate:                      # Command to generate manifests YAML
+          command: ["argo-cd-helmfile.sh"]
+          args: ["generate"]
+  # -- Additional command line arguments to pass to repo server
+  extraArgs: []
+
+  # -- Environment variables to pass to repo server
+  env: []
+
+  # -- envFrom to pass to repo server
+  # @default -- `[]` (See [values.yaml])
+  envFrom: []
+  # - configMapRef:
+  #     name: config-map-name
+  # - secretRef:
+  #     name: secret-name
+
+  # -- Repo server log format: Either `text` or `json`
+  logFormat: text
+  # -- Repo server log level
+  logLevel: info
+
+  # -- Annotations to be added to repo server pods
+  podAnnotations: {}
+
+  # -- Labels to be added to repo server pods
+  podLabels: {}
+
+  # -- Configures the repo server port
+  containerPort: 8081
+
+  ## Readiness and liveness probes for default backend
+  ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+  ##
+  readinessProbe:
+    # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+    failureThreshold: 3
+    # -- Number of seconds after the container has started before [probe] is initiated
+    initialDelaySeconds: 10
+    # -- How often (in seconds) to perform the [probe]
+    periodSeconds: 10
+    # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+    successThreshold: 1
+    # -- Number of seconds after which the [probe] times out
+    timeoutSeconds: 1
+  livenessProbe:
+    # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+    failureThreshold: 3
+    # -- Number of seconds after the container has started before [probe] is initiated
+    initialDelaySeconds: 10
+    # -- How often (in seconds) to perform the [probe]
+    periodSeconds: 10
+    # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+    successThreshold: 1
+    # -- Number of seconds after which the [probe] times out
+    timeoutSeconds: 1
+
+  # -- Additional volumeMounts to the repo server main container
+  volumeMounts:
+    - mountPath: /usr/local/bin/argo-cd-helmfile.sh
+      name: custom-tools
+      subPath: argo-cd-helmfile.sh
+    - mountPath: /usr/local/bin/helmfile
+      name: custom-tools
+      subPath: helmfile
+
+  # -- Additional volumes to the repo server pod
+  volumes:
+    - name: custom-tools
+      emptyDir: {}
+
+  # -- [Node selector]
+  nodeSelector: {}
+  # -- [Tolerations] for use with node taints
+  tolerations: []
+  # -- Assign custom [affinity] rules to the deployment
+  affinity: {}
+
+  # -- Assign custom [TopologySpreadConstraints] rules to the repo server
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+  ## If labelSelector is left out, it will default to the labelSelector configuration of the deployment
+  topologySpreadConstraints: []
+  # - maxSkew: 1
+  #   topologyKey: topology.kubernetes.io/zone
+  #   whenUnsatisfiable: DoNotSchedule
+
+  # -- Priority class for the repo server
+  priorityClassName: ""
+
+  # -- Repo server container-level security context
+  containerSecurityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #     - all
+    # readOnlyRootFilesystem: true
+
+  # -- Resource limits and requests for the repo server pods
+  resources: {}
+  #  limits:
+  #    cpu: 50m
+  #    memory: 128Mi
+  #  requests:
+  #    cpu: 10m
+  #    memory: 64Mi
+
+  ## Repo server service configuration
+  service:
+    # -- Repo server service annotations
+    annotations: {}
+    # -- Repo server service labels
+    labels: {}
+    # -- Repo server service port
+    port: 8081
+    # -- Repo server service port name
+    portName: https-repo-server
+
+  ## Repo server metrics service configuration
+  metrics:
+    # -- Deploy metrics service
+    enabled: false
+    service:
+      # -- Metrics service annotations
+      annotations: {}
+      # -- Metrics service labels
+      labels: {}
+      # -- Metrics service port
+      servicePort: 8084
+      # -- Metrics service port name
+      portName: http-metrics
+    serviceMonitor:
+      # -- Enable a prometheus ServiceMonitor
+      enabled: false
+      # -- Prometheus ServiceMonitor interval
+      interval: 30s
+      # -- Prometheus [RelabelConfigs] to apply to samples before scraping
+      relabelings: []
+      # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
+      metricRelabelings: []
+      # -- Prometheus ServiceMonitor selector
+      selector: {}
+        # prometheus: kube-prometheus
+
+      # -- Prometheus ServiceMonitor scheme
+      scheme: ""
+      # -- Prometheus ServiceMonitor tlsConfig
+      tlsConfig: {}
+      # -- Prometheus ServiceMonitor namespace
+      namespace: "" # "monitoring"
+      # -- Prometheus ServiceMonitor labels
+      additionalLabels: {}
+
+  ## Enable Admin ClusterRole resources.
+  ## Enable if you would like to grant cluster rights to Argo CD repo server.
+  clusterAdminAccess:
+    # -- Enable RBAC for local cluster deployments
+    enabled: false
+  ## Enable Custom Rules for the Repo server's Cluster Role resource
+  ## Enable this and set the rules: to whatever custom rules you want for the Cluster Role resource.
+  ## Defaults to off
+  clusterRoleRules:
+    # -- Enable custom rules for the Repo server's Cluster Role resource
+    enabled: false
+    # -- List of custom rules for the Repo server's Cluster Role resource
+    rules: []
+
+  ## Repo server service account
+  ## If create is set to true, make sure to uncomment the name and update the rbac section below
+  serviceAccount:
+    # -- Create repo server service account
+    create: true
+    # -- Repo server service account name
+    name: "" # "argocd-repo-server"
+    # -- Annotations applied to created service account
+    annotations: {}
+    # -- Automount API credentials for the Service Account
+    automountServiceAccountToken: true
+
+  # -- Additional containers to be added to the repo server pod
+  extraContainers: []
+
+  # -- Repo server rbac rules
+  rbac: []
+  #   - apiGroups:
+  #     - argoproj.io
+  #     resources:
+  #     - applications
+  #     verbs:
+  #     - get
+  #     - list
+  #     - watch
+
+  # Init container to copy argocd binary
+  copyutil:
+    # -- Resource limits and requests for the copyutil initContainer
+    resources: {}
+    #  limits:
+    #    cpu: 50m
+    #    memory: 64Mi
+    #  requests:
+    #    cpu: 10m
+    #    memory: 32Mi
+
+  # -- Init containers to add to the repo server pods
+  initContainers:
+    - name: download-tools
+      image: alpine:3.8
+      command: [sh, -c]
+      args:
+        - wget -qO /custom-tools/argo-cd-helmfile.sh https://raw.githubusercontent.com/travisghansen/argo-cd-helmfile/master/src/argo-cd-helmfile.sh &&
+          chmod +x /custom-tools/argo-cd-helmfile.sh &&
+          wget -qO /custom-tools/helmfile https://github.com/roboll/helmfile/releases/download/v0.138.7/helmfile_linux_amd64 &&
+          chmod +x /custom-tools/helmfile
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools

@@ -1,0 +1,277 @@
+## Controller
+controller:
+  # -- Application controller name string
+  name: application-controller
+
+  image:
+    # -- Repository to use for the application controller
+    # @default -- `""` (defaults to global.image.repository)
+    repository: ""
+    # -- Tag to use for the application controller
+    # @default -- `""` (defaults to global.image.tag)
+    tag: ""
+    # -- Image pull policy for the application controller
+    # @default -- `""` (defaults to global.image.imagePullPolicy)
+    imagePullPolicy: ""
+
+  # -- The number of application controller pods to run.
+  # If changing the number of replicas you must pass the number as `ARGOCD_CONTROLLER_REPLICAS` as an environment variable
+  replicas: 1
+
+  # -- Deploy the application controller as a StatefulSet instead of a Deployment, this is required for HA capability.
+  enableStatefulSet: true
+
+  ## Application controller commandline flags
+  args:
+    # -- define the application controller `--status-processors`
+    statusProcessors: "20"
+    # -- define the application controller `--operation-processors`
+    operationProcessors: "10"
+    # -- define the application controller `--app-resync`
+    appResyncPeriod: "180"
+    # -- define the application controller `--self-heal-timeout-seconds`
+    selfHealTimeout: "5"
+    # -- define the application controller `--repo-server-timeout-seconds`
+    repoServerTimeoutSeconds: "60"
+
+  # -- Application controller log format. Either `text` or `json`
+  logFormat: text
+  # -- Application controller log level
+  logLevel: info
+
+  # -- Additional command line arguments to pass to application controller
+  extraArgs: []
+
+  # -- Environment variables to pass to application controller
+  env:
+    []
+    # - name: "ARGOCD_CONTROLLER_REPLICAS"
+    #   value: ""
+
+  # -- envFrom to pass to application controller
+  # @default -- `[]` (See [values.yaml])
+  envFrom: []
+  # - configMapRef:
+  #     name: config-map-name
+  # - secretRef:
+  #     name: secret-name
+
+  # -- Annotations to be added to application controller pods
+  podAnnotations: {}
+
+  # -- Labels to be added to application controller pods
+  podLabels: {}
+
+  # -- Application controller container-level security context
+  containerSecurityContext:
+    {}
+    # capabilities:
+    #   drop:
+    #     - all
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+
+  # -- Application controller listening port
+  containerPort: 8082
+
+  ## Readiness and liveness probes for default backend
+  ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+  ##
+  readinessProbe:
+    # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+    failureThreshold: 3
+    # -- Number of seconds after the container has started before [probe] is initiated
+    initialDelaySeconds: 10
+    # -- How often (in seconds) to perform the [probe]
+    periodSeconds: 10
+    # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+    successThreshold: 1
+    # -- Number of seconds after which the [probe] times out
+    timeoutSeconds: 1
+  livenessProbe:
+    # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
+    failureThreshold: 3
+    # -- Number of seconds after the container has started before [probe] is initiated
+    initialDelaySeconds: 10
+    # -- How often (in seconds) to perform the [probe]
+    periodSeconds: 10
+    # -- Minimum consecutive successes for the [probe] to be considered successful after having failed
+    successThreshold: 1
+    # -- Number of seconds after which the [probe] times out
+    timeoutSeconds: 1
+
+  # -- Additional volumeMounts to the application controller main container
+  volumeMounts: []
+
+  # -- Additional volumes to the application controller pod
+  volumes: []
+
+  ## Controller service configuration
+  service:
+    # -- Application controller service annotations
+    annotations: {}
+    # -- Application controller service labels
+    labels: {}
+    # -- Application controller service port
+    port: 8082
+    # -- Application controller service port name
+    portName: https-controller
+
+  # -- [Node selector]
+  nodeSelector: {}
+  # -- [Tolerations] for use with node taints
+  tolerations: []
+  # -- Assign custom [affinity] rules to the deployment
+  affinity: {}
+
+  # -- Assign custom [TopologySpreadConstraints] rules to the application controller
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+  ## If labelSelector is left out, it will default to the labelSelector configuration of the deployment
+  topologySpreadConstraints: []
+  # - maxSkew: 1
+  #   topologyKey: topology.kubernetes.io/zone
+  #   whenUnsatisfiable: DoNotSchedule
+
+  # -- Priority class for the application controller pods
+  priorityClassName: ""
+
+  # -- Resource limits and requests for the application controller pods
+  resources: {}
+  #  limits:
+  #    cpu: 500m
+  #    memory: 512Mi
+  #  requests:
+  #    cpu: 250m
+  #    memory: 256Mi
+
+  serviceAccount:
+    # -- Create a service account for the application controller
+    create: true
+    # -- Service account name
+    name: argocd-application-controller
+    # -- Annotations applied to created service account
+    annotations: {}
+    # -- Automount API credentials for the Service Account
+    automountServiceAccountToken: true
+
+  ## Application controller metrics configuration
+  metrics:
+    # -- Deploy metrics service
+    enabled: false
+    applicationLabels:
+      # -- Enables additional labels in argocd_app_labels metric
+      enabled: false
+      # -- Additional labels
+      labels: []
+    service:
+      # -- Metrics service annotations
+      annotations: {}
+      # -- Metrics service labels
+      labels: {}
+      # -- Metrics service port
+      servicePort: 8082
+      # -- Metrics service port name
+      portName: http-metrics
+    serviceMonitor:
+      # -- Enable a prometheus ServiceMonitor
+      enabled: false
+      # -- Prometheus ServiceMonitor interval
+      interval: 30s
+      # -- Prometheus [RelabelConfigs] to apply to samples before scraping
+      relabelings: []
+      # -- Prometheus [MetricRelabelConfigs] to apply to samples before ingestion
+      metricRelabelings: []
+      # -- Prometheus ServiceMonitor selector
+      selector: {}
+        # prometheus: kube-prometheus
+
+      # -- Prometheus ServiceMonitor scheme
+      scheme: ""
+      # -- Prometheus ServiceMonitor tlsConfig
+      tlsConfig: {}
+      # -- Prometheus ServiceMonitor namespace
+      namespace: "" # "monitoring"
+      # -- Prometheus ServiceMonitor labels
+      additionalLabels: {}
+    rules:
+      # -- Deploy a PrometheusRule for the application controller
+      enabled: false
+      # -- PrometheusRule.Spec for the application controller
+      spec: []
+      # - alert: ArgoAppMissing
+      #   expr: |
+      #     absent(argocd_app_info)
+      #   for: 15m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: "[Argo CD] No reported applications"
+      #     description: >
+      #       Argo CD has not reported any applications data for the past 15 minutes which
+      #       means that it must be down or not functioning properly.  This needs to be
+      #       resolved for this cloud to continue to maintain state.
+      # - alert: ArgoAppNotSynced
+      #   expr: |
+      #     argocd_app_info{sync_status!="Synced"} == 1
+      #   for: 12h
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "[{{`{{$labels.name}}`}}] Application not synchronized"
+      #     description: >
+      #       The application [{{`{{$labels.name}}`}} has not been synchronized for over
+      #       12 hours which means that the state of this cloud has drifted away from the
+      #       state inside Git.
+    #   selector:
+    #     prometheus: kube-prometheus
+    #   namespace: monitoring
+    #   additionalLabels: {}
+
+  ## Enable if you would like to grant rights to Argo CD to deploy to the local Kubernetes cluster.
+  clusterAdminAccess:
+    # -- Enable RBAC for local cluster deployments
+    enabled: true
+
+  ## Enable this and set the rules: to whatever custom rules you want for the Cluster Role resource.
+  ## Defaults to off
+  clusterRoleRules:
+    # -- Enable custom rules for the application controller's ClusterRole resource
+    enabled: false
+    # -- List of custom rules for the application controller's ClusterRole resource
+    rules: []
+
+  # -- Additional containers to be added to the application controller pod
+  extraContainers: []
+
+  # -- Init containers to add to the application controller pod
+  ## If your target Kubernetes cluster(s) require a custom auth provider executable
+  ## you could use this (and the same in the server pod) to bootstrap
+  ## that executable into your Argo CD container
+  initContainers: []
+  #  - name: download-tools
+  #    image: alpine:3.8
+  #    command: [sh, -c]
+  #    args:
+  #      - wget -qO- https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar -xvzf - &&
+  #        mv linux-amd64/helm /custom-tools/
+  #    volumeMounts:
+  #      - mountPath: /custom-tools
+  #        name: custom-tools
+  #  volumeMounts:
+  #  - mountPath: /usr/local/bin/helm
+  #    name: custom-tools
+  #    subPath: helm
+
+  pdb:
+    # -- Labels to be added to application controller pdb
+    labels: {}
+    # -- Annotations to be added to application controller pdb
+    annotations: {}
+
+    # -- Deploy a Poddisruptionbudget for the application controller
+    enabled: false
+    # minAvailable: 1
+    # maxUnavailable: 0
+
+  # -- Secrets with credentials to pull images from a private registry
+  imagePullSecrets: []

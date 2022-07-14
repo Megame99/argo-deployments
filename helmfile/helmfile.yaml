@@ -39,6 +39,10 @@ releases:
     version: 4.9.8
     values:
       - overrides/argocd/argocd.yaml.gotmpl
+      - overrides/argocd/configs/configs.yaml.gotmpl
+      - overrides/argocd/repoServer/repoServer.yaml.gotmpl
+      - overrides/argocd/server/server.yaml.gotmpl
+      - overrides/argocd/controller/controller.yaml.gotmpl
     labels:
         app: argocd
     wait: false
