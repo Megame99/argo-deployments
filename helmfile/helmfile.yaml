@@ -43,8 +43,25 @@ releases:
       - overrides/argocd/repoServer/repoServer.yaml.gotmpl
       - overrides/argocd/server/server.yaml.gotmpl
       - overrides/argocd/controller/controller.yaml.gotmpl
+      - overrides/argocd/redis/redis.yaml.gotmpl
     labels:
+        tier: frontend
         app: argocd
     wait: false
     installed: true
     force: false
+  
+  - name: argocd-image-updater-{{ .Environment.Name }}
+    chart: ../helm/charts/argocd/image-updater
+    namespace: agrocd-{{ .Environment.Name }}
+    version: 0.8.0
+    values:
+      - overrides/argocd/image-updater/image-updater.yaml.gotmpl
+    labels:
+        tier: image-updater
+        app: argocd
+    wait: false
+    installed: true
+    force: false
+
+    
