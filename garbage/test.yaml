@@ -1,0 +1,10 @@
+---
+releases:
+
+# https://github.com/helm/charts/tree/master/incubator/raw
+- name: argocd-test
+  installed: true
+  ../helm/charts/argocd
+  values:
+  - overrides/argocd/server/server.yaml.gotmpl
+

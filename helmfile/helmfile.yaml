@@ -43,9 +43,21 @@ releases:
       - overrides/argocd/repoServer/repoServer.yaml.gotmpl
       - overrides/argocd/server/server.yaml.gotmpl
       - overrides/argocd/controller/controller.yaml.gotmpl
-      - overrides/argocd/redis/redis.yaml.gotmpl
     labels:
         tier: frontend
+        app: argocd
+    wait: false
+    installed: true
+    force: false
+  
+  - name: argocd-redis-{{ .Environment.Name }}
+    chart: ../helm/charts/argocd/redis-ha
+    namespace: agrocd-{{ .Environment.Name }}
+    version: 4.16.0
+    values:
+      - overrides/argocd/redis/redis.yaml.gotmpl
+    labels:
+        tier: backend
         app: argocd
     wait: false
     installed: true
@@ -63,5 +75,7 @@ releases:
     wait: false
     installed: true
     force: false
+  
+
 
     
