@@ -1,35 +1,35 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  labels:
-    app: raw
-    argocd.argoproj.io/instance: argocd
-    chart: raw-0.2.5
-    heritage: Helm
-    release: argocd-apps
-  name: argocd
-  namespace: agrocd-meganrd
-spec:
-  destination:
-    namespace: argocd-helmfile
-    server: https://kubernetes.default.svc
-  project: default
-  source:
-    path: helmfile
-    plugin:
-      env:
-      - name: HELMFILE_GLOBAL_OPTIONS
-        value: --file helmfile/test.yaml
-      - name: HELMFILE_TEMPLATE_OPTIONS
-        value: --include-crds
-      - name: HELM_TEMPLATE_OPTIONS
-        value: --skip-tests
-      name: helmfile
-    repoURL: https://github.com/Megame99/argo-deployments.git
-    targetRevision: HEAD
-  syncPolicy:
-    syncOptions:
-    - ApplyOutOfSyncOnly=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   labels:
+#     app: raw
+#     argocd.argoproj.io/instance: argocd
+#     chart: raw-0.2.5
+#     heritage: Helm
+#     release: argocd-apps
+#   name: argocd
+#   namespace: agrocd-meganrd
+# spec:
+#   destination:
+#     namespace: argocd-helmfile
+#     server: https://kubernetes.default.svc
+#   project: default
+#   source:
+#     path: helmfile
+#     plugin:
+#       env:
+#       - name: HELMFILE_GLOBAL_OPTIONS
+#         value: --file helmfile/test.yaml
+#       - name: HELMFILE_TEMPLATE_OPTIONS
+#         value: --include-crds
+#       - name: HELM_TEMPLATE_OPTIONS
+#         value: --skip-tests
+#       name: helmfile
+#     repoURL: https://github.com/Megame99/argo-deployments.git
+#     targetRevision: HEAD
+#   syncPolicy:
+#     syncOptions:
+#     - ApplyOutOfSyncOnly=true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -39,7 +39,7 @@ metadata:
     prometheus.io/path: /metrics
     prometheus.io/port: "8090"
   name: argo-frontend
-  namespace: agrocd-meganrd
+  namespace: agrocd-meganrd3
 spec:
   project: default
   source:
@@ -60,7 +60,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: argo-image-updater
-  namespace: agrocd-meganrd
+  namespace: agrocd-meganrd3
 spec:
   project: default
   source:
@@ -82,12 +82,34 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: argo-backend
-  namespace: agrocd-meganrd
+  namespace: agrocd-meganrd3
 spec:
   project: default
   source:
     repoURL: 'https://github.com/Megame99/argo-deployments.git'
     path: helm/charts/argocd/redis-ha
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-helm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-rollouts
+  namespace: agrocd-meganrd3
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Megame99/argo-deployments.git'
+    path: helm/charts/argocd/argo-rollouts
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
