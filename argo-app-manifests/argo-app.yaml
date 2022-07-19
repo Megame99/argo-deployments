@@ -34,6 +34,10 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8090"
   name: argo-frontend
   namespace: agrocd-meganrd
 spec:
@@ -41,6 +45,49 @@ spec:
   source:
     repoURL: 'https://github.com/Megame99/argo-deployments.git'
     path: helm/charts/argocd
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-helm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-image-updater
+  namespace: agrocd-meganrd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Megame99/argo-deployments.git'
+    path: helm/charts/argocd/image-updater
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-helm
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-backend
+  namespace: agrocd-meganrd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Megame99/argo-deployments.git'
+    path: helm/charts/argocd/redis-ha
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
