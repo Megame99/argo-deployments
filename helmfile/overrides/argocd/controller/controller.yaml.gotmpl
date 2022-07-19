@@ -57,7 +57,11 @@ controller:
   #     name: secret-name
 
   # -- Annotations to be added to application controller pods
-  podAnnotations: {}
+  podAnnotations: {
+    prometheus.io/scrape: "true",
+    prometheus.io/path: /metrics,
+    prometheus.io/port: "8090"
+  }
 
   # -- Labels to be added to application controller pods
   podLabels: {}
@@ -157,10 +161,10 @@ controller:
   ## Application controller metrics configuration
   metrics:
     # -- Deploy metrics service
-    enabled: false
+    enabled: true
     applicationLabels:
       # -- Enables additional labels in argocd_app_labels metric
-      enabled: false
+      enabled: true
       # -- Additional labels
       labels: []
     service:

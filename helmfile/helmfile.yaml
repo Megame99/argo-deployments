@@ -27,7 +27,7 @@ helmDefaults:
   wait: false
 
 environments:
-  meganrd3:
+  meganrd2:
 
 releases:
 
@@ -71,6 +71,19 @@ releases:
       - overrides/argocd/image-updater/image-updater.yaml.gotmpl
     labels:
         tier: image-updater
+        app: argocd
+    wait: false
+    installed: true
+    force: false
+
+  - name: argocd-rollouts-{{ .Environment.Name }}
+    chart: ../helm/charts/argocd/argo-rollouts
+    namespace: agrocd-{{ .Environment.Name }}
+    version: 2.18.0
+    values:
+      - overrides/argocd/rollouts/rollouts.yaml.gotmpl
+    labels:
+        tier: rollouts
         app: argocd
     wait: false
     installed: true
