@@ -169,7 +169,11 @@ controller:
       labels: []
     service:
       # -- Metrics service annotations
-      annotations: {}
+      annotations: {
+        prometheus.io/scrape: "true",
+        prometheus.io/path: /metrics,
+        prometheus.io/port: "8090"
+      }
       # -- Metrics service labels
       labels: {}
       # -- Metrics service port

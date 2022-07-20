@@ -1,6 +1,10 @@
-annotations:
-  artifacthub.io/changes: |
-    - "[Added]: Additional manifests to deploy within the chart"
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8090"
+    artifacthub.io/changes: |
+      - "[Added]: Additional manifests to deploy within the chart"
 apiVersion: v2
 appVersion: v1.2.0
 description: A Helm chart for Argo Rollouts
