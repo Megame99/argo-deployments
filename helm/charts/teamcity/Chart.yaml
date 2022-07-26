@@ -1,0 +1,17 @@
+name: dts-teamcity
+home: https://www.jetbrains.com/teamcity/
+apiVersion: v1
+version: 2021.2.3
+appVersion: lts
+description: TeamCity
+sources:
+- https://hub.docker.com/r/jetbrains/teamcity-server
+maintainers:
+- name: ericdube
+  email: eric.dube@hrsdc-rhdcc.gc.ca
+- name: benlarabie
+  email: ben.larabie@hrsdc-rhdcc.gc.ca
+- name: marcusblais
+  email: marcus.blais@hrsdc-rhdcc.gc.ca
+icon: https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Teamcity_Logo.png/1200px-Teamcity_Logo.png
+

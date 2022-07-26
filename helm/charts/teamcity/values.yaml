@@ -1,0 +1,65 @@
+# Default values for teamcity.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.  
+replicaCount: 1
+
+secrets:
+  enabled: false
+  image: mtscontainers.azurecr.io/azurekvsidecar:latest
+
+persistence:
+  storageClass: dtsstorageclass
+
+istio:
+  ssl:
+    enabled: false
+
+extraEnv:
+  - name: TEAMCITY_HTTPS_PROXY_ENABLED
+    value: "true"
+port:
+  enabled: true
+  name: http
+  port: 8111
+  protocol: TCP
+
+image:
+  repository: jetbrains/teamcity-server
+  tag: 2021.2.3
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8111
+
+ingress:
+  enabled: true
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+networkPolicy:
+  enabled: false
+  ingressCidrBlock: 10.100.1.0/24
+  egressPodMatchLabels:
+    app: database
+
+livenessProbe:
+  enabled: false
+  delay: 30
+  path: /
+
+readinessProbe:
+  enabled: false
+  delay: 30
+  path: /
+
+nameOverride: ""
+fullnameOverride: ""
+
+
