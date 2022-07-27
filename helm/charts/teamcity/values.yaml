@@ -62,4 +62,42 @@ readinessProbe:
 nameOverride: ""
 fullnameOverride: ""
 
+image:
+  repository: jetbrains/teamcity-server
+  tag: 2022.04.1
+  pullPolicy: Always
+
+rbac:
+  readSecrets: true
+service:
+  port: 80
+  targetPort: 8111
+ingress:
+  enabled: true
+  tls:
+    - hosts:
+        - teamcity.{{ requiredEnv "BASE_DOMAIN" }}
+      secretName: dev-admin-wc-tls
+  hosts:
+    - teamcity.{{ requiredEnv "BASE_DOMAIN" }}
+  annotations: {}
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+
+
+persistence:
+    enabled: true
+    size: 32Gi
+    mounts: 
+      - mountPath: "/var/run/docker.sock"
+        name: dockersock
+    volumes:
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock
+    storageClass: dtsstorageclass
+nameOverride: dts-teamcity
+global:
+  postgresql:
+    servicePort: 5432
 
