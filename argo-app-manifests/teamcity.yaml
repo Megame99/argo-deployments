@@ -1,0 +1,43 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: teamcity-server
+  namespace: agrocd-meganrd2
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/DTS-STN/dts-kotlin.git'
+    path: helm/charts/teamcity/server
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-teamcity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: teamcity-agent
+  namespace: agrocd-meganrd2
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/DTS-STN/dts-kotlin.git'
+    path: helm/charts/teamcity/agent
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-teamcity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
