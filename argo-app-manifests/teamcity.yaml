@@ -19,7 +19,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
+  
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -30,14 +30,134 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/DTS-STN/dts-kotlin.git'
-    path: helm/charts/teamcity/agent
+    path: helm/charts/teamcity/agent/
     targetRevision: HEAD
+    helm:
+      passCredentials: false # If true then adds --pass-credentials to Helm commands to pass credentials to all domains
+      # Extra parameters to set (same as setting through values.yaml, but these take precedence)
+      parameters:
+      - name: KEYVAULT_READ_USER
+        value: $KEYVAULT_READ_USER
+      - name: KEYVAULT_READ_PASSWORD
+        value: $KEYVAULT_READ_PASSWORD
+      - name: SUBSCRIPTION_ID
+        value: $SUBSCRIPTION_ID
+      - name: TENANT_ID
+        value: $TENANT_ID
+      - name: KEYVAULT_NAME
+        value: $KEYVAULT_NAME
+      - name: K8S_CLUSTER_NAME
+        value: $K8S_CLUSTER_NAME
+      - name: K8S_RG_NAME
+        value: $K8S_RG_NAME
+      - name: NAMESPACE
+        value: "argo-teamcity"
+      - name: CONTAINER_REGISTRY
+        value: $CONTAINER_REGISTRY
+      
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: argo-teamcity
+    namespace: argo-teamcity 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - Validate=false
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: teamcity-database
+  namespace: agrocd-meganrd2
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/bitnami/charts.git'
+    path: bitnami/postgresql/
+    targetRevision: HEAD
+    helm:
+      passCredentials: false # If true then adds --pass-credentials to Helm commands to pass credentials to all domains
+      # Extra parameters to set (same as setting through values.yaml, but these take precedence)
+      parameters:
+      - name: KEYVAULT_READ_USER
+        value: $KEYVAULT_READ_USER
+      - name: KEYVAULT_READ_PASSWORD
+        value: $KEYVAULT_READ_PASSWORD
+      - name: SUBSCRIPTION_ID
+        value: $SUBSCRIPTION_ID
+      - name: TENANT_ID
+        value: $TENANT_ID
+      - name: KEYVAULT_NAME
+        value: $KEYVAULT_NAME
+      - name: K8S_CLUSTER_NAME
+        value: $K8S_CLUSTER_NAME
+      - name: K8S_RG_NAME
+        value: $K8S_RG_NAME
+      - name: NAMESPACE
+        value: "argo-teamcity"
+      - name: CONTAINER_REGISTRY
+        value: $CONTAINER_REGISTRY
+      values: |
+        global:
+          postgresql:
+            auth:
+              existingSecret: teamcity-database-password
+              database: teamcity
+              username: dtsadmin
+        resources:
+            limits: {}
+            requests:
+              memory: 256Mi
+              cpu: 250m
+        primary:
+          persistence:
+            enabled: true
+            storageClass: dtsstorageclass
+          initContainers:
+            - name: init-secrets
+              image: dtsbdmdevrhpacr.azurecr.io/azurekvsidecar:latest
+              restartPolicy: Never
+              env:
+                - name: KEYVAULT_READ_USER
+                  value: "{{ .Values.KEYVAULT_READ_USER }}"
+                - name: KEYVAULT_READ_PASSWORD
+                  value: "{{ .Values.KEYVAULT_READ_PASSWORD }}"  
+                - name: SUBSCRIPTION_ID
+                  value: "{{ .Values.SUBSCRIPTION_ID }}"
+                - name: TENANT_ID
+                  value: "{{ .Values.TENANT_ID }}"
+                - name: KEYVAULT_NAME
+                  value: "{{ .Values.KEYVAULT_NAME }}"
+                - name: K8S_CLUSTER_NAME
+                  value: "{{ .Values.K8S_CLUSTER_NAME }}"        
+                - name: K8S_RG_NAME
+                  value: "{{ .Values.K8S_RG_NAME }}" 
+                - name: NAMESPACE
+                  value: "{{ .Values.NAMESPACE }}" 
+                - name: SINGLE_SECRET
+                  value: "true"        
+                - name: SINGLE_SECRET_NAME
+                  value: teamcity-database-password     
+                - name: SECRET_LIST
+                  value: "teamcity-database-password,teamcity-database-admin-password"    
+                - name: KEY_NAME_OVERRIDES
+                  value: teamcity-database-password=password,teamcity-database-admin-password=postgres-password
+        existingSecret: teamcity-database-password
+        persistence:
+            enabled: true
+            storageClass: dtsstorageclass
+        postgresqlUsername: dbadmin
+        postgresqlDatabase: teamcity
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argo-teamcity 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=false     
