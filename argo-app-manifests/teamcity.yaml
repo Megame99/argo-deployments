@@ -118,7 +118,7 @@ spec:
             storageClass: dtsstorageclass
           initContainers:
             - name: init-secrets
-              image: dtsbdmdevrhpacr.azurecr.io/azurekvsidecar:latest
+              image: "{{ .Values.CONTAINER_REGISTRY }}/azurekvsidecar:latest"
               restartPolicy: Never
               env:
                 - name: KEYVAULT_READ_USER
