@@ -25,12 +25,12 @@ spec:
                   # kubernetes.io/ingress.class: nginx
                   # kubernetes.io/tls-acme: "true"
               hosts:
-                  - host: vault.agro.{{ requiredEnv "BASE_DOMAIN" }}
+                  - host: "vault.agro.{{ .Values.BASE_DOMAIN }}"
                     paths: []
               tls: 
                 - secretName: dev-admin-wc-tls
                   hosts:
-                    - vault.agro.{{ requiredEnv "BASE_DOMAIN" }}
+                    - "vault.agro.{{ .Values.BASE_DOMAIN }}"
           dataStorage:
               storageClass: dtsstorageclass
           auditStorage:
