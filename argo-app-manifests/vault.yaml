@@ -30,7 +30,7 @@ spec:
               tls: 
                 - secretName: dev-admin-wc-tls
                   hosts:
-                    - "vault.${BASE_DOMAIN}"
+                    - "vault-agro.${BASE_DOMAIN}"
           dataStorage:
               storageClass: dtsstorageclass
           auditStorage:
